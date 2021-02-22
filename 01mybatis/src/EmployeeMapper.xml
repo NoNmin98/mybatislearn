@@ -2,14 +2,56 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lzy.mybatis.EmployeeMapper">
+<mapper namespace="com.lzy.mybatis.dao.EmployeeMapper">
 <!--
 namespace:名称空间
 id：唯一标识
 resultType：返回类型
 #{id}:从床底过来的参数中取id
 -->
-    <select id="selectEmp" resultType="com.lzy.mybatis.bean.Employee">
+    <select id="getEmpById" resultType="com.lzy.mybatis.bean.Employee">
         select id,last_name lastName,email,gender from tbl_employee where id = #{id}
  </select>
+<!--    public void addEmp(Employee employee);
+    public void updateEmp(Employee employee);
+    public void deleteEmpById(Integer id);-->
+<!--    parameterType可以省略-->
+    <insert id="addEmp" parameterType="com.lzy.mybatis.bean.Employee">
+        insert into tbl_employee(last_name,email,gender) values(#{lastName},#{email},#{gender})
+    </insert>
+    <update id="updateEmp">
+        update tbl_employee set last_name=#{lastName},email=#{email},gender=#{gender} where id=#{id}
+    </update>
+    <delete id="deleteEmpById">
+        delete frome tbl_employee where id=#{id}
+    </delete>
+<!--    这里使用resultMap-->
+<!--    id:表示唯一标识，type：表示规则路径-->
+    <resultMap id="myemp" type="com.lzy.mybatis.bean.Employee">
+<!--        指定主键列的封装规则：id定义主键底层有优化
+            column：指定那一列
+            property：指定对应的javaBean属性-->
+        <id column="id" property="id"></id>
+<!--        result定义普通列的封装规则-->
+        <result column="last_name" property="lastName"></result>
+<!--        如果不写其他列会自动封装，推荐全部都写上-->
+    </resultMap>
+    <select id="getEmpById2" resultMap="myemp">
+        select * from tbl_employee where id=#{id}
+    </select>
+
+
+<!--联合查询：级联属性封装结果集,这里的dept表示员工表中的dept-->
+<resultMap id="myempanddept" type="com.lzy.mybatis.bean.Employee">
+    <id column="id" property="id"/>
+    <result column="last_name" property="lastName"></result>
+    <result column="gender" property="gender"></result>
+    <result column="did" property="dept.id"></result>
+    <result column="dept_name" property="dept.deptName"></result>
+</resultMap>
+<!--    这里测试连表查询，创建一个部门表然后在查询员工的时候同时查询出对应的部门-->
+<select id="getEmpAndDept" resultMap="myempanddept">
+select e.id id,e.last_name last_name,e.gender gender,e.d_id d_id,d.id did,d.dept_name dept_name
+from tbl_employee e,tbl_dept d where e.d_id=d.id AND e.id=#{id}
+    </select>
 </mapper>
